@@ -7,6 +7,47 @@ const bounds = {
 
 var zoomScalar = 20;
 
+const forceLine = {
+	enabled: false,
+
+	inital: {
+		x: null,
+		y: null
+	},
+	final: {
+		x: null,
+		y: null
+	},
+
+	/**
+	 * Draw the force element on the canvas.
+	 * @param {CanvasRenderingContext2D} ctx The canvas context to draw on.
+	 */
+	draw: function(ctx, zoom = 1, xOffset = 0, yOffset = 0) {
+		if (this.enabled && this.final.x && this.final.y) {
+			const x = ball.pos.x * zoom + xOffset;
+			const y = ball.pos.y * zoom + yOffset;
+			const x2 = x + (this.inital.x - this.final.x);
+			const y2 = y + (this.inital.y - this.final.y);
+			ctx.beginPath();
+			ctx.moveTo(x, y);
+			ctx.lineTo(x2, y2);
+			ctx.stroke();
+			ctx.closePath();
+		}
+	},
+
+	/**
+	 * Reset the force line to it's inital state
+	 */
+	reset: function() {
+		this.inital.x = null;
+		this.inital.y = null;
+		this.final.x = null;
+		this.final.y = null;
+	}
+};
+
 const ball = {
 	pos: {
 		x: 0,
@@ -149,6 +190,9 @@ function drawFrame() {
 	ball.updatePos(1000 / fps);
 	ball.draw(drawOffset[0], drawOffset[1], ctx, zoomScalar);
 
+	//Draw force inidicator line
+	forceLine.draw(ctx, zoomScalar, drawOffset[0], drawOffset[1]);
+
 	//Draw the bound rectangle
 	ctx.beginPath();
 	ctx.strokeStyle = 'cyan';
@@ -170,4 +214,39 @@ function applyGravity() {
 }
 setInterval(applyGravity, 1000);
 applyGravity();
+//#endregion
+
+//#region Ball control
+
+canvas.addEventListener('pointerdown', (e) => {
+	forceLine.inital.x = e.x;
+	forceLine.inital.y = e.y;
+	forceLine.final.x = e.x;
+	forceLine.final.y = e.y;
+	forceLine.enabled = true;
+
+	//Add event listeners to provide the click and drag ability
+	function handleMove(e) {
+		forceLine.final.x = e.x;
+		forceLine.final.y = e.y;
+	}
+	function handleUp() {
+		canvas.removeEventListener('pointermove', handleMove);
+		canvas.removeEventListener('pointerup', handleUp);
+		canvas.removeEventListener('pointerout', handleUp);
+
+		//Apply the required force to the ball
+		let xForce = (forceLine.inital.x - forceLine.final.x) / 10;
+		let yForce = (forceLine.inital.y - forceLine.final.y) / 10;
+		ball.applyAccel(xForce, yForce);
+
+		forceLine.enabled = false;
+		forceLine.reset();
+	}
+
+	canvas.addEventListener('pointermove', handleMove);
+	canvas.addEventListener('pointerup', handleUp);
+	canvas.addEventListener('pointerout', handleUp);
+});
+
 //#endregion

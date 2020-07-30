@@ -1,3 +1,12 @@
+const bounds = {
+	bottom: 10,
+	left: 10,
+	top: 10,
+	right: 10
+};
+
+var zoomScalar = 20;
+
 const ball = {
 	pos: {
 		x: 0,
@@ -11,8 +20,12 @@ const ball = {
 	radius: 1,
 	/** The velocity multiplier applied when the ball bounces */
 	bounceMult: 0.5,
-	/** The fillstyle applied to the ball when it is drawn. */
-	fillStyle: 'red',
+	drawStyle: {
+		/** The fillstyle applied to the ball when it is drawn. */
+		fillStyle: 'red',
+		/** Whether to draw an outline on the ball. */
+		strokeStyle: 'black'
+	},
 
 	//#region Convenience methods
 	/**
@@ -54,8 +67,10 @@ const ball = {
 		ctx.moveTo(x, y + this.radius * zoom);
 		ctx.beginPath();
 		ctx.arc(x, y, this.radius * zoom, 0, Math.PI * 2);
-		ctx.fillStyle = this.fillStyle;
+		ctx.fillStyle = this.drawStyle.fillStyle;
 		ctx.fill();
+		ctx.strokeStyle = this.drawStyle.strokeStyle;
+		ctx.stroke();
 	},
 
 	/**
@@ -63,8 +78,24 @@ const ball = {
 	 * @param {Number} timePassed The amount of time to simulate (time passed since last update call), defaults to 1000.
 	 */
 	updatePos: function(timePassed = 1000) {
-		this.pos.x += this.velocity.x * (timePassed / 1000);
-		this.pos.y += this.velocity.y * (timePassed / 1000);
+		let xVel = this.velocity.x * (timePassed / 1000);
+		let yVel = this.velocity.y * (timePassed / 1000);
+		if (this.pos.y + this.radius + yVel >= bounds.bottom) {
+			//Bottom collision
+			this.velocity.y = this.velocity.y * -this.bounceMult;
+			yVel = this.velocity.y * (timePassed / 1000);
+		} else if (this.pos.y - this.radius + yVel <= -bounds.top) {
+			this.velocity.y = this.velocity.y * -this.bounceMult;
+			yVel = this.velocity.y * (timePassed / 1000);
+		} else if (this.pos.x + this.radius + xVel >= bounds.right) {
+			this.velocity.x = this.velocity.x * -this.bounceMult;
+			xVel = this.velocity.x * (timePassed / 1000);
+		} else if (this.pos.x - this.radius + xVel <= -bounds.left) {
+			this.velocity.x = this.velocity.x * -this.bounceMult;
+			xVel = this.velocity.x * (timePassed / 1000);
+		}
+		this.pos.x += xVel;
+		this.pos.y += yVel;
 	}
 
 	//#endregion
@@ -83,7 +114,26 @@ function onResize() {
 	canvas.width = document.documentElement.clientWidth;
 	canvas.height = document.documentElement.clientHeight;
 
+	//Recalculate draw offset
 	drawOffset = [ canvas.width / 2, canvas.height / 2 ];
+
+	//Recalculate collision bounds
+	bounds.bottom = canvas.height / 2 / zoomScalar;
+	bounds.top = canvas.height / 2 / zoomScalar;
+	bounds.left = canvas.width / 2 / zoomScalar;
+	bounds.right = canvas.width / 2 / zoomScalar;
+
+	//Reset ball position and velocity
+	ball.pos = {
+		x: 0,
+		y: 0
+	};
+	ball.velocity = {
+		x: 0,
+		y: 0
+	};
+
+	//Redraw the current frame
 	drawFrame();
 }
 window.addEventListener('resize', onResize);
@@ -93,17 +143,31 @@ window.dispatchEvent(new Event('resize'));
 
 //#region Frame drawing
 function drawFrame() {
-	ball.updatePos(1000 / fps);
 	ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-	ball.draw(drawOffset[0], drawOffset[1], ctx, 20);
+
+	//Update and draw the ball
+	ball.updatePos(1000 / fps);
+	ball.draw(drawOffset[0], drawOffset[1], ctx, zoomScalar);
+
+	//Draw the bound rectangle
+	ctx.beginPath();
+	ctx.strokeStyle = 'cyan';
+	ctx.rect(
+		drawOffset[0] - bounds.left * zoomScalar,
+		drawOffset[1] - bounds.top * zoomScalar,
+		(bounds.left + bounds.right) * zoomScalar,
+		(bounds.top + bounds.bottom) * zoomScalar
+	);
+	ctx.stroke();
 }
 
 setInterval(drawFrame, 1000 / fps);
 //#endregion
 
 //#region Ball gravity
-setInterval(() => {
+function applyGravity() {
 	ball.applyAccel(0, 9.81, 1000, fps);
-}, 1000);
-ball.applyAccel(0, 9.81, 1000, fps);
+}
+setInterval(applyGravity, 1000);
+applyGravity();
 //#endregion

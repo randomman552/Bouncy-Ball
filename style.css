@@ -3,9 +3,169 @@ body {
 	height: 100vh;
 	width: 100%;
 	overflow: hidden;
+	font-family: sans-serif;
 }
 
 canvas {
 	height: 100%;
 	width: 100%;
+}
+
+/* Edit button styles */
+button#edit {
+	position: absolute;
+	top: 3px;
+	left: 5px;
+	width: 50px;
+	height: 50px;
+	border-radius: 5px;
+	border: none;
+	background-color: rgba(80, 80, 80, 0.25);
+	backdrop-filter: blur(5px);
+	-webkit-backdrop-filter: blur(5px);
+	cursor: pointer;
+	padding: 0;
+	transition: 0.3s;
+}
+
+button#edit:hover,
+button#edot:active {
+	background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Global button styles */
+button.mask::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	background-color: rgba(0, 0, 0, 0.5);
+	border-radius: inherit;
+	width: 100%;
+	height: 100%;
+	transition: inherit;
+	mask-image: url(icons/edit.svg);
+	-webkit-mask-image: url(icons/edit.svg);
+	mask-size: 100%;
+	-webkit-mask-size: 100%;
+}
+
+button.mask:hover::before,
+button.mass:active::before {
+	background-color: rgba(0, 0, 0, 0.9);
+}
+
+/* Popup styles */
+#popup-container {
+	display: none;
+}
+
+#popup-container.active {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.25);
+	backdrop-filter: blur(5px);
+	z-index: 1;
+}
+
+#popup-container > #popup {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	background-color: white;
+	padding: 35px 10px 10px 10px;
+}
+
+#popup-container > #popup > header {
+	width: 100%;
+	height: 30px;
+	position: absolute;
+	box-sizing: border-box;
+	top: 0;
+	left: 0;
+	font-size: larger;
+	text-align: center;
+	padding: 4px;
+	background-color: rgba(0, 0, 0, 0.75);
+	color: rgba(240, 240, 240, 1);
+}
+
+/* Input row styles */
+.input-row {
+	display: grid;
+	width: 100%;
+	grid-template-columns: 35% auto 20%;
+	grid-template-areas: "label input units";
+	margin: 1px;
+	align-items: center;
+	justify-content: center;
+}
+
+.input-row > * {
+	width: 100%;
+}
+
+.input-row > label {
+	grid-area: label;
+	text-align: left;
+}
+
+.input-row > input {
+	grid-area: input;
+	text-align: center;
+}
+
+.input-row > .units {
+	grid-area: units;
+	text-align: right;
+}
+
+/* Close button styles */
+button#close {
+	position: absolute;
+	top: 0;
+	right: 0;
+	padding: 0;
+	margin: 2.5px;
+	width: 20px;
+	height: 20px;
+	border: none;
+	background-color: transparent;
+	cursor: pointer;
+}
+
+button#close::before {
+	mask-image: url(icons/close.svg);
+	-webkit-mask-image: url(icons/close.svg);
+	mask-size: 100%;
+	-webkit-mask-size: 100%;
+	background-color: rgba(230, 230, 255, 0.75);
+}
+
+button#close:hover::before,
+button#close:active::before {
+	background-color: rgba(255, 255, 255, 1);
+}
+
+/* Reset button styles */
+button#ball-reset-pos {
+	cursor: pointer;
+	margin-top: 5px;
+	border-radius: 5px;
+	padding: 5px;
+	border: none;
+	background-color: rgb(103, 110, 115);
+	color: rgba(240, 240, 240, 1);
+	transition: 0.3s;
+}
+
+button#ball-reset-pos:hover,
+button#ball-reset-pos:active {
+	background-color: rgb(65, 69, 71);
 }

@@ -5,9 +5,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
     <script src="main.js" defer></script>
+    <script>
+        function showPopup() {
+            document.getElementById("popup-container").classList.add("active");
+        }
+
+        function hidePopup() {
+            document.getElementById("popup-container").classList.remove("active");
+        }
+    </script>
     <title>Bouncy Ball</title>
 </head>
 <body>
     <canvas id="canvas">This browser does not support canvas</canvas>
+    <button id="edit" title="Edit ball constants" onclick="showPopup();" class="mask"></button>
+    <div id="popup-container">
+        <form id="popup"  onsubmit="return false">
+            <header>Edit Ball</header>
+
+            <button id="close" onclick="hidePopup();" class="mask"></button>
+
+            <div class="input-row">
+                <label for="ball-mass">Mass:</label>
+                <input id="ball-mass" type="number" value="5" step="0.1" title="Mass of the ball (kg), changes the amount of force needed to move the ball.">
+                <span class="units">kg</span>
+            </div>
+
+            <div class="input-row">
+                <label for="ball-gravity">Gravity:</label>
+                <input id="ball-gravity" type="number" value="1" step="0.1" title="Acceleration due to gravity (multiplier of Earth gravity).">
+                <span class="units">g</span>
+            </div>
+
+            <div class="input-row">
+                <label for="ball-bounce%">Bounce:</label>
+                <input id="ball-bounce%" type="number" value="50" step="0.1" min="0" title="Ball bounce efficiency (%)">
+                <span class="units">%</span>
+            </div>
+
+            <button id="ball-reset-pos" title="Reset ball position and velocity">Reset Position</button>
+        </form>
+    </div>
 </body>
 </html>

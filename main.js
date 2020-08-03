@@ -57,7 +57,7 @@ const ball = {
 		x: 0,
 		y: 0
 	},
-	mass: 0.05,
+	mass: 5,
 	radius: 1,
 	/** The velocity multiplier applied when the ball bounces */
 	bounceMult: 0.5,
@@ -164,15 +164,27 @@ function onResize() {
 	bounds.left = canvas.width / 2 / zoomScalar;
 	bounds.right = canvas.width / 2 / zoomScalar;
 
-	//Reset ball position and velocity
-	ball.pos = {
-		x: 0,
-		y: 0
-	};
-	ball.velocity = {
-		x: 0,
-		y: 0
-	};
+	//If ball is out of bounds, move it back in bounds
+	//#region Bound corrections
+
+	//Right bound
+	if (ball.pos.x + ball.radius >= bounds.right) {
+		ball.pos.x = bounds.right - ball.radius;
+	}
+	//Left bound
+	if (ball.pos.x - ball.radius <= -bounds.left) {
+		ball.pos.x = -bounds.left + ball.radius;
+	}
+	//Bottom bound
+	if (ball.pos.y + ball.radius >= bounds.bottom) {
+		ball.pos.y = bounds.bottom - ball.radius;
+	}
+	//Top bound
+	if (ball.pos.y - ball.radius <= -bounds.top) {
+		ball.pos.y = -bounds.top + ball.radius;
+	}
+
+	//#endregion
 
 	//Redraw the current frame
 	drawFrame();
@@ -209,15 +221,24 @@ setInterval(drawFrame, 1000 / fps);
 //#endregion
 
 //#region Ball gravity
+
+var gravity = 9.81;
+
 function applyGravity() {
-	ball.applyAccel(0, 9.81, 1000, fps);
+	ball.applyAccel(0, gravity, 1000, fps);
 }
 setInterval(applyGravity, 1000);
 applyGravity();
+
 //#endregion
 
 //#region Ball control
 
+/**
+ * Start the ball force application.
+ * @param {Number} x The x coordinate we are starting from.
+ * @param {Number} y The y coordinate we are starting from.
+ */
 function handleStart(x, y) {
 	forceLine.inital.x = x;
 	forceLine.inital.y = y;
@@ -226,15 +247,23 @@ function handleStart(x, y) {
 	forceLine.enabled = true;
 }
 
+/**
+ * Update the final x and y positions for the force application.
+ * @param {Number} x The new X coordinate of the cursor.
+ * @param {Number} y The new Y coordinate of the cursor.
+ */
 function handleMove(x, y) {
 	forceLine.final.x = x;
 	forceLine.final.y = y;
 }
 
+/**
+ * Apply the final force vector.
+ */
 function handleEnd() {
 	//Apply the required force to the ball
-	let xForce = (forceLine.inital.x - forceLine.final.x) / 10;
-	let yForce = (forceLine.inital.y - forceLine.final.y) / 10;
+	let xForce = (forceLine.inital.x - forceLine.final.x) / ball.mass;
+	let yForce = (forceLine.inital.y - forceLine.final.y) / ball.mass;
 	ball.applyAccel(xForce, yForce);
 
 	forceLine.enabled = false;
@@ -300,6 +329,50 @@ canvas.addEventListener('touchstart', (e) => {
 	canvas.addEventListener('touchmove', touchMove);
 	canvas.addEventListener('touchend', touchEnd);
 	canvas.addEventListener('touchcancel', touchEnd);
+});
+
+//#endregion
+
+//#region Ball edit events
+
+/** Input used to set the mass of the ball */
+const massEdit = document.getElementById('ball-mass');
+
+/** Input used to set the acceleration due to gravity */
+const gravEdit = document.getElementById('ball-gravity');
+
+/** Input used to set the balls bounce multiplier */
+const bounceEdit = document.getElementById('ball-bounce%');
+
+/** Reset button is used to reset the position and velocity of the ball */
+const resetPos = document.getElementById('ball-reset-pos');
+
+//Apply default values
+massEdit.value = ball.mass;
+gravEdit.value = gravity / 9.81;
+bounceEdit.value = ball.bounceMult * 100;
+
+massEdit.addEventListener('input', () => {
+	ball.mass = Number(massEdit.value);
+});
+
+gravEdit.addEventListener('input', () => {
+	gravity = Number(gravEdit.value) * 9.81;
+});
+
+bounceEdit.addEventListener('input', () => {
+	ball.bounceMult = Number(bounceEdit.value) / 100;
+});
+
+resetPos.addEventListener('click', () => {
+	ball.pos = {
+		x: 0,
+		y: 0
+	};
+	ball.velocity = {
+		x: 0,
+		y: 0
+	};
 });
 
 //#endregion

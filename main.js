@@ -218,35 +218,88 @@ applyGravity();
 
 //#region Ball control
 
-canvas.addEventListener('pointerdown', (e) => {
-	forceLine.inital.x = e.x;
-	forceLine.inital.y = e.y;
-	forceLine.final.x = e.x;
-	forceLine.final.y = e.y;
+function handleStart(x, y) {
+	forceLine.inital.x = x;
+	forceLine.inital.y = y;
+	forceLine.final.x = x;
+	forceLine.final.y = y;
 	forceLine.enabled = true;
+}
 
-	//Add event listeners to provide the click and drag ability
-	function handleMove(e) {
-		forceLine.final.x = e.x;
-		forceLine.final.y = e.y;
+function handleMove(x, y) {
+	forceLine.final.x = x;
+	forceLine.final.y = y;
+}
+
+function handleEnd() {
+	//Apply the required force to the ball
+	let xForce = (forceLine.inital.x - forceLine.final.x) / 10;
+	let yForce = (forceLine.inital.y - forceLine.final.y) / 10;
+	ball.applyAccel(xForce, yForce);
+
+	forceLine.enabled = false;
+	forceLine.reset();
+}
+
+//Event handler for normal pointers
+canvas.addEventListener('pointerdown', (e) => {
+	e.preventDefault();
+	handleStart(e.x, e.y);
+
+	function pointerMove(e) {
+		e.preventDefault();
+		handleMove(e.x, e.y);
 	}
-	function handleUp() {
-		canvas.removeEventListener('pointermove', handleMove);
-		canvas.removeEventListener('pointerup', handleUp);
-		canvas.removeEventListener('pointerout', handleUp);
 
-		//Apply the required force to the ball
-		let xForce = (forceLine.inital.x - forceLine.final.x) / 10;
-		let yForce = (forceLine.inital.y - forceLine.final.y) / 10;
-		ball.applyAccel(xForce, yForce);
+	function pointerEnd(e) {
+		e.preventDefault();
+		handleEnd();
 
-		forceLine.enabled = false;
-		forceLine.reset();
+		//Remove event listners
+		canvas.removeEventListener('pointermove', pointerMove);
+		canvas.removeEventListener('pointerup', pointerEnd);
+		canvas.removeEventListener('pointerout', pointerEnd);
+		canvas.removeEventListener('pointercancel', pointerEnd);
 	}
 
-	canvas.addEventListener('pointermove', handleMove);
-	canvas.addEventListener('pointerup', handleUp);
-	canvas.addEventListener('pointerout', handleUp);
+	canvas.addEventListener('pointermove', pointerMove);
+
+	canvas.addEventListener('pointerup', pointerEnd);
+
+	canvas.addEventListener('pointerout', pointerEnd);
+
+	canvas.addEventListener('pointercancel', pointerEnd);
+});
+
+//Event handler for touch devices
+canvas.addEventListener('touchstart', (e) => {
+	e.preventDefault();
+
+	//Get the touch object
+	e = e.changedTouches[0];
+	handleStart(e.clientX, e.clientY);
+
+	function touchMove(e) {
+		e.preventDefault();
+
+		//Get the touch object
+		e = e.changedTouches[0];
+
+		handleMove(e.clientX, e.clientY);
+	}
+
+	function touchEnd(e) {
+		e.preventDefault();
+		handleEnd();
+
+		canvas.removeEventListener('touchmove', touchMove);
+		canvas.removeEventListener('touchend', touchEnd);
+		canvas.removeEventListener('touchcancel', touchEnd);
+	}
+
+	canvas.addEventListener('touchmove', touchMove);
+	canvas.addEventListener('touchend', touchEnd);
+	canvas.addEventListener('touchcancel', touchEnd);
 });
 
 //#endregion

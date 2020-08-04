@@ -121,19 +121,53 @@ const ball = {
 	updatePos: function(timePassed = 1000) {
 		let xVel = this.velocity.x * (timePassed / 1000);
 		let yVel = this.velocity.y * (timePassed / 1000);
+
+		//Y collisions
 		if (this.pos.y + this.radius + yVel >= bounds.bottom) {
 			//Bottom collision
-			this.velocity.y = this.velocity.y * -this.bounceMult;
-			yVel = this.velocity.y * (timePassed / 1000);
+			//Scale the vel down by the distance to the wall, so that we can realisticaly bounce off it, instead of bouncing off the air near it.
+			//We only do this when the yVel is higher than 0.1, as this prevents the ball from jittering on the surface.
+			if (Math.abs(yVel) >= 0.1) {
+				let wallDis = this.pos.y + this.radius - bounds.bottom;
+				yVel *= wallDis / yVel;
+				ball.pos.y = bounds.bottom - this.radius;
+			}
+
+			this.velocity.y *= -this.bounceMult;
+			yVel *= timePassed / 1000 * -this.bounceMult;
 		} else if (this.pos.y - this.radius + yVel <= -bounds.top) {
-			this.velocity.y = this.velocity.y * -this.bounceMult;
-			yVel = this.velocity.y * (timePassed / 1000);
-		} else if (this.pos.x + this.radius + xVel >= bounds.right) {
-			this.velocity.x = this.velocity.x * -this.bounceMult;
-			xVel = this.velocity.x * (timePassed / 1000);
+			//Top collision
+			if (Math.abs(yVel) >= 0.1) {
+				let wallDis = this.pos.y - this.radius + bounds.top;
+				yVel *= wallDis / yVel;
+				ball.pos.y = -bounds.top + this.radius;
+			}
+
+			this.velocity.y *= -this.bounceMult;
+			yVel *= timePassed / 1000 * -this.bounceMult;
+		}
+
+		//X collisions
+		if (this.pos.x + this.radius + xVel >= bounds.right) {
+			//Right collision
+			if (Math.abs(xVel) >= 0.1) {
+				let wallDis = this.pos.x + this.radius - bounds.right;
+				xVel *= wallDis / xVel;
+				ball.pos.x = bounds.right - this.radius;
+			}
+
+			this.velocity.x *= -this.bounceMult;
+			xVel *= timePassed / 1000 * -this.bounceMult;
 		} else if (this.pos.x - this.radius + xVel <= -bounds.left) {
-			this.velocity.x = this.velocity.x * -this.bounceMult;
-			xVel = this.velocity.x * (timePassed / 1000);
+			//Left collision
+			if (Math.abs(xVel) >= 0.1) {
+				let wallDis = this.pos.x - this.radius + bounds.left;
+				xVel *= wallDis / xVel;
+				ball.pos.x = -bounds.left + this.radius;
+			}
+
+			this.velocity.x *= -this.bounceMult;
+			xVel *= timePassed / 1000 * -this.bounceMult;
 		}
 		this.pos.x += xVel;
 		this.pos.y += yVel;
@@ -142,7 +176,7 @@ const ball = {
 	//#endregion
 };
 
-const fps = 60;
+const fps = 144;
 
 //#region Canvas setup
 

@@ -9,3 +9,10 @@ The balls attributes can be altered at run-time, this includes:
 - Bounciness
 
 The deployment of this project can be seen [here](https://randomman552.github.io/Bouncy-Ball).
+
+## Compatibility
+Tested with and works on
+- Chrome
+- Opera
+- Firefox (some issues with slowdown)
+- Edge

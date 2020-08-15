@@ -5,12 +5,12 @@ const bounds = {
 	right: 10
 };
 
-var zoomScalar = 20;
+const zoomScalar = 20;
 
 const forceLine = {
 	enabled: false,
 
-	inital: {
+	initial: {
 		x: null,
 		y: null
 	},
@@ -22,13 +22,17 @@ const forceLine = {
 	/**
 	 * Draw the force element on the canvas.
 	 * @param {CanvasRenderingContext2D} ctx The canvas context to draw on.
+	 * @param {Number} zoom The amount to multiply the size of the force line by.
+	 * Offsets are used as the origin for this drawing operation.
+	 * @param {Number} xOffset The offset along the X axis.
+	 * @param {Number} yOffset The offset along the Y axis.
 	 */
 	draw: function(ctx, zoom = 1, xOffset = 0, yOffset = 0) {
 		if (this.enabled && this.final.x && this.final.y) {
 			const x = ball.pos.x * zoom + xOffset;
 			const y = ball.pos.y * zoom + yOffset;
-			const x2 = x + (this.inital.x - this.final.x);
-			const y2 = y + (this.inital.y - this.final.y);
+			const x2 = x + (this.initial.x - this.final.x);
+			const y2 = y + (this.initial.y - this.final.y);
 			ctx.beginPath();
 			ctx.moveTo(x, y);
 			ctx.lineTo(x2, y2);
@@ -38,11 +42,11 @@ const forceLine = {
 	},
 
 	/**
-	 * Reset the force line to it's inital state
+	 * Reset the force line to it's initial state
 	 */
 	reset: function() {
-		this.inital.x = null;
-		this.inital.y = null;
+		this.initial.x = null;
+		this.initial.y = null;
 		this.final.x = null;
 		this.final.y = null;
 	}
@@ -62,7 +66,7 @@ const ball = {
 	/** The velocity multiplier applied when the ball bounces */
 	bounceMult: 0.5,
 	drawStyle: {
-		/** The fillstyle applied to the ball when it is drawn. */
+		/** The fill style applied to the ball when it is drawn. */
 		fillStyle: 'red',
 		/** Whether to draw an outline on the ball. */
 		strokeStyle: 'black'
@@ -74,7 +78,7 @@ const ball = {
 	 * @param {Number} x The acceleration to apply on the X axis (m/s/s).
 	 * @param {Number} y The acceleration to apply on the Y axis (m/s/s).
 	 * @param {Number} timePeriod The time (in milliseconds) to apply this acceleration over (if 0 will be applied all at once). Defaults to 0.
-	 * @param {Number} numSamples The number of samples to take accross the time period (defaults to 100).
+	 * @param {Number} numSamples The number of samples to take across the time period (defaults to 100).
 	 */
 	applyAccel: function(x, y, timePeriod = 0, numSamples = 100) {
 		if (timePeriod == 0) {
@@ -83,7 +87,7 @@ const ball = {
 		} else {
 			const xPer = x / numSamples;
 			const yPer = y / numSamples;
-			var i = 0;
+			let i = 0;
 			const intervalID = setInterval(() => {
 				this.velocity.x += xPer;
 				this.velocity.y += yPer;
@@ -96,11 +100,12 @@ const ball = {
 	},
 
 	/**
-	 * Draw the ball on the given canvas context.
-	 * @param {Number} xOffset Number of pixels to offset the X axis by
-	 * @param {Number} yOffset Number of pixels to offset the Y axis by
-	 * @param {CanvasRenderingContext2D} ctx The drawing context to use.
-	 * @param {Number} zoom The zoom multiplier.
+	 * Draw the ball on the canvas.
+	 * @param {CanvasRenderingContext2D} ctx The canvas context to draw on.
+	 * @param {Number} zoom The amount to multiply the size of the force line by.
+	 * Offsets are used as the origin for this drawing operation.
+	 * @param {Number} xOffset The offset along the X axis.
+	 * @param {Number} yOffset The offset along the Y axis.
 	 */
 	draw: function(xOffset, yOffset, ctx, zoom = 1) {
 		let x = this.pos.x * zoom + xOffset;
@@ -125,7 +130,7 @@ const ball = {
 		//Y collisions
 		if (this.pos.y + this.radius + yVel >= bounds.bottom) {
 			//Bottom collision
-			//Scale the vel down by the distance to the wall, so that we can realisticaly bounce off it, instead of bouncing off the air near it.
+			//Scale the vel down by the distance to the wall, so that we can realistically bounce off it, instead of bouncing off the air near it.
 			//We only do this when the yVel is higher than 0.1, as this prevents the ball from jittering on the surface.
 			if (Math.abs(yVel) >= 0.1) {
 				let wallDis = this.pos.y + this.radius - bounds.bottom;
@@ -183,7 +188,7 @@ const fps = 144;
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
-var drawOffset = [ canvas.width / 2, canvas.height / 2 ];
+let drawOffset = [canvas.width / 2, canvas.height / 2];
 
 function onResize() {
 	canvas.width = document.documentElement.clientWidth;
@@ -236,7 +241,7 @@ function drawFrame() {
 	ball.updatePos(1000 / fps);
 	ball.draw(drawOffset[0], drawOffset[1], ctx, zoomScalar);
 
-	//Draw force inidicator line
+	//Draw force indicator line
 	forceLine.draw(ctx, zoomScalar, drawOffset[0], drawOffset[1]);
 
 	//Draw the bound rectangle
@@ -256,7 +261,7 @@ setInterval(drawFrame, 1000 / fps);
 
 //#region Ball gravity
 
-var gravity = 9.81;
+let gravity = 9.81;
 
 function applyGravity() {
 	ball.applyAccel(0, gravity, 1000, fps);
@@ -274,8 +279,8 @@ applyGravity();
  * @param {Number} y The y coordinate we are starting from.
  */
 function handleStart(x, y) {
-	forceLine.inital.x = x;
-	forceLine.inital.y = y;
+	forceLine.initial.x = x;
+	forceLine.initial.y = y;
 	forceLine.final.x = x;
 	forceLine.final.y = y;
 	forceLine.enabled = true;
@@ -296,8 +301,8 @@ function handleMove(x, y) {
  */
 function handleEnd() {
 	//Apply the required force to the ball
-	let xForce = (forceLine.inital.x - forceLine.final.x) / ball.mass;
-	let yForce = (forceLine.inital.y - forceLine.final.y) / ball.mass;
+	let xForce = (forceLine.initial.x - forceLine.final.x) / ball.mass;
+	let yForce = (forceLine.initial.y - forceLine.final.y) / ball.mass;
 	ball.applyAccel(xForce, yForce);
 
 	forceLine.enabled = false;
@@ -318,7 +323,7 @@ canvas.addEventListener('pointerdown', (e) => {
 		e.preventDefault();
 		handleEnd();
 
-		//Remove event listners
+		//Remove event listeners
 		canvas.removeEventListener('pointermove', pointerMove);
 		canvas.removeEventListener('pointerup', pointerEnd);
 		canvas.removeEventListener('pointerout', pointerEnd);
